@@ -20,7 +20,7 @@ function HomeAdmin() {
 
     // Estados para paginación
     const [currentPage, setCurrentPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
+    const itemsPerPage = 10;
 
     useEffect(() => {
         const storedUser = JSON.parse(localStorage.getItem("user"));
@@ -28,7 +28,7 @@ function HomeAdmin() {
             setUser(storedUser);
         }
         fetchInsumos();
-    }, [currentPage]);
+    }, []);
 
     useEffect(() => {
         // Filtrar los insumos cuando el término de búsqueda cambia
@@ -39,13 +39,11 @@ function HomeAdmin() {
     }, [searchTerm, insumos]);
 
     const fetchInsumos = () => {
-        api.get(`/insumos/insumos/?page=${currentPage}`)
+        api.get(`/insumos/insumos/`)
             .then((res) => {
-                setInsumos(res.data.results || []);
-                setFilteredInsumos(res.data.results || []);
-                const totalItems = res.data.count;
-                const itemsPerPage = 10;
-                setTotalPages(Math.ceil(totalItems / itemsPerPage));
+                setInsumos(res.data || []);
+                setFilteredInsumos(res.data || []);
+                setCurrentPage(1); // Reiniciar a la primera página al cargar nuevos datos
             })
             .catch((err) => {
                 console.error("Error al obtener los insumos:", err.message);
@@ -86,6 +84,11 @@ function HomeAdmin() {
         }
     };
 
+    // Calcular los datos de la página actual
+    const totalPages = Math.ceil(filteredInsumos.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const paginatedInsumos = filteredInsumos.slice(startIndex, startIndex + itemsPerPage);
+
     return (
         <div className="min-h-screen flex flex-col bg-gray-100">
             <Header user={user} />
@@ -112,17 +115,18 @@ function HomeAdmin() {
                         </div>
 
                         {/* Mensaje de no resultados */}
-                        {filteredInsumos.length === 0 ? (
+                        {paginatedInsumos.length === 0 ? (
                             <div className="text-center text-gray-600 mt-6">
-                                {insumos.length === 0
+                                {filteredInsumos.length === 0
                                     ? "No hay insumos disponibles."
                                     : "No se han encontrado insumos que coincidan con el término de búsqueda."}
                             </div>
                         ) : (
                             <InsumoTable
-                                insumos={filteredInsumos}
+                                insumos={paginatedInsumos}
                                 onEdit={handleEditInsumo}
                                 onDelete={handleDeleteInsumo}
+                                startIndex={startIndex} // Pasar el índice inicial al componente InsumoTable
                             />
                         )}
 

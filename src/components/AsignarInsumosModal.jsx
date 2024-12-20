@@ -17,7 +17,7 @@ function AsignarInsumosModal({ isOpen, onClose, onSubmit, claseId }) {
     const fetchInsumos = async () => {
         try {
             const res = await api.get("/insumos/insumos/");
-            setInsumos(res.data.results || []);
+            setInsumos(res.data || []);
             toast.info("Insumos cargados correctamente.");
         } catch (err) {
             toast.error("Error al obtener insumos: " + err.message);

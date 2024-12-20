@@ -16,7 +16,7 @@ const formatNumber = (num) => {
     return Number.isInteger(parsedNum) ? parsedNum : parsedNum.toFixed(2);
 };
 
-function InsumoTable({ insumos, onEdit, onDelete }) {
+function InsumoTable({ insumos, onEdit, onDelete, startIndex  }) {
     return (
         <table className="min-w-full bg-white border border-gray-200">
             <thead>
@@ -31,7 +31,7 @@ function InsumoTable({ insumos, onEdit, onDelete }) {
             <tbody>
                 {insumos.map((insumo, index) => (
                     <tr key={insumo.id}>
-                        <td className="px-4 py-2 border">{index + 1}</td>
+                        <td className="px-4 py-2 border">{startIndex + index + 1}</td>
                         <td className="px-4 py-2 border">{insumo.nombre}</td>
                         <td className="px-4 py-2 border">{formatNumber(insumo.cantidad_total)}</td>
                         <td className="px-4 py-2 border">

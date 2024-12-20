@@ -7,6 +7,7 @@ function InsumoFormModal({ insumo, onClose, refreshInsumos }) {
     const [nombre, setNombre] = useState("");
     const [cantidad, setCantidad] = useState("0");
     const [unidadMedida, setUnidadMedida] = useState("");
+    const [existingNames, setExistingNames] = useState([]); // Lista de nombres existentes
     const editCantidadOnly = insumo?.editCantidadOnly || false;
 
     useEffect(() => {
@@ -17,8 +18,33 @@ function InsumoFormModal({ insumo, onClose, refreshInsumos }) {
         }
     }, [insumo]);
 
-    const handleSubmit = (e) => {
+    useEffect(() => {
+        fetchExistingNames();
+    }, []);
+
+    const fetchExistingNames = async () => {
+        try {
+            const res = await api.get("/insumos/insumos/");
+            const names = res.data.map((i) => i.nombre.toLowerCase());
+            setExistingNames(names);
+        } catch (err) {
+            console.error("Error al cargar nombres de insumos:", err.message);
+            toast.error("Error al cargar los nombres existentes.");
+        }
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Validar nombre duplicado
+        const lowerCaseName = nombre.toLowerCase();
+        if (
+            existingNames.includes(lowerCaseName) &&
+            lowerCaseName !== insumo?.nombre.toLowerCase()
+        ) {
+            toast.error("El nombre del insumo ya existe. Por favor, elige otro.");
+            return;
+        }
 
         if (cantidad < 0) {
             toast.error("La cantidad no puede ser negativa.");
@@ -50,7 +76,9 @@ function InsumoFormModal({ insumo, onClose, refreshInsumos }) {
             })
             .catch((err) => {
                 console.error("Error al guardar el insumo:", err.response?.data || err.message);
-                const errorMessage = err.response?.data?.error || "Error al guardar el insumo. Verifica si el insumo está asignado a una clase iniciada.";
+                const errorMessage =
+                    err.response?.data?.error ||
+                    "Error al guardar el insumo. Verifica si el insumo está asignado a una clase iniciada.";
                 toast.error(errorMessage, {
                     position: "top-center",
                 });

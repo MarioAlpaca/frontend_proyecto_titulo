@@ -60,17 +60,22 @@ function QuitarInsumosModal({ isOpen, onClose, insumos, onRemoveInsumo }) {
     const handleRemove = async (insumoId) => {
         const cantidad = parseFloat(cantidadQuitar[insumoId]);
         const insumo = insumos.find((insumo) => insumo.id === insumoId);
-
+    
         if (cantidad >= 0.01 && insumo && cantidad <= insumo.total_cantidad) {
             await onRemoveInsumo(insumoId, cantidad);
-
-            // Actualizar la lista de insumos disponibles después de quitar uno
+    
+            // Actualizar la cantidad restante del insumo afectado
             setInsumosDisponibles((prev) =>
-                prev.filter((i) => !(i.id === insumoId && cantidad >= i.total_cantidad))
+                prev.map((i) =>
+                    i.id === insumoId
+                        ? { ...i, total_cantidad: i.total_cantidad - cantidad }
+                        : i
+                )
             );
-
-            // Restablecer la cantidad a "0"
+    
+            // Restablecer la cantidad a "0" para el insumo afectado
             setCantidadQuitar((prev) => ({ ...prev, [insumoId]: "0" }));
+    
             toast.success("Cantidad eliminada correctamente.", {
                 position: "top-center",
                 autoClose: 3000,
@@ -82,6 +87,7 @@ function QuitarInsumosModal({ isOpen, onClose, insumos, onRemoveInsumo }) {
             });
         }
     };
+    
 
     if (!isOpen) return null;
 
@@ -96,7 +102,7 @@ function QuitarInsumosModal({ isOpen, onClose, insumos, onRemoveInsumo }) {
                         <p>No hay insumos asignados a esta clase.</p>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto">
+                    <div className="overflow-y-auto max-h-96">
                         <table className="w-full table-auto border-collapse">
                             <thead>
                                 <tr className="bg-gray-100">
